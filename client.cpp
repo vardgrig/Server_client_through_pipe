@@ -62,17 +62,16 @@ void msg(char* text, char* id){
 		cout<<"Client doesn't exist\n";
 		return;
 	}
-	char* msgs = (char*)malloc(BUFSIZE);
-	sprintf(msgs, "/tmp/client_%s", id);
-	mkfifo(msgs,0666);
-	int fd = open(msgs,O_RDWR);
+	char* messages_pipe = "/tmp/messages";
+	mkfifo(messages_pipe,0666);
+	int fd = open(messages_pipe,O_RDWR);
 	if(fd < 0)
 		cout<<"ERROROROROROROOR\n";
-	write(fd,id,sizeof(id));
-	write(fd,text,sizeof(text));
+	write(fd,id,strlen(id));
+	write(fd,text,strlen(text));
 }
 
-int main(int argc, char* argv[])
+int main()
 {
         registration();       
         int n = 1;
