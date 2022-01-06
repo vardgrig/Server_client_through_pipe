@@ -26,7 +26,7 @@ int connect_to_pipe() {
         mkfifo(registration_pipe, 0666);
         int fd = open(registration_pipe, O_RDWR);
         if (fd == -1) {
-                cout<<"Cannot open regisration pipe. error "<< strerror(errno);
+                cout<<"Cannot open registration pipe. error "<< strerror(errno);
                 exit(1);
         }
         return fd;
@@ -38,7 +38,7 @@ void registration() {
 
         char pid_str[BUFSIZE];
         sprintf(pid_str, "%d", pid);
-        write(reg_fd, pid_str, sizeof(pid_str));
+        write(reg_fd, pid_str, strlen(pid_str));
         cout<<"Client registered with ID: "<< pid << endl;
 }
 
