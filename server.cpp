@@ -26,7 +26,7 @@ void startup_server() {
 	key_t key = 9874;
 	int shmid = shmget(key, SHSIZE, IPC_CREAT | 0666);
 	if (shmid < 0) { perror("shmget"); exit(1); }
-  char* shm = (char*)shmat(shmid, NULL, 0);
+  	char* shm = (char*)shmat(shmid, NULL, 0);
 	if (shm == (char *) -1) { perror("shmat"); exit(1); }
 	char up_message[] = "server is on\n";
  	memcpy(shm, up_message, sizeof(up_message));	
@@ -40,14 +40,13 @@ void* client(void* args) {
 
 int create_pipe() {
 	char *messages_from_server = "/tmp/registration";
-  mkfifo(messages_from_server, 0666);
-  int fd = open(messages_from_server, O_RDWR);
+        mkfifo(messages_from_server, 0666);
+        int fd = open(messages_from_server, O_RDWR);
 	return fd;
 }
 
 
 void start_to_listen() {
-
 	key_t key = 9874;
 	int shmid = shmget(key, SHSIZE, IPC_CREAT | 0666);
 	if (shmid < 0) { perror("shmget"); exit(1); }
@@ -59,21 +58,40 @@ void start_to_listen() {
 	char client_pid[BUFSIZE];
 	char buf[BUFSIZE];
 	int fd_child;
-	while(read(fd, client_pid, 5)) {
+	while(read(fd, client_pid, 4)) {
 		if (connected_client_count < CLIENT_COUNT) {
 			strcat(shm,client_pid);
 			strcat(shm,"\n");
 			char* child_pipe = (char*)malloc(BUFSIZE);
 			sprintf(child_pipe, "/tmp/client_%s", client_pid);
 			pthread_create(&client_threads[connected_client_count], NULL, 
-				              client, child_pipe);
-      pthread_join(client_threads[connected_client_count], NULL);       	        
-      read(fd,buf,BUFSIZE);
+				       client, child_pipe);
+             	        pthread_join(client_threads[connected_client_count], NULL);
+             	        
+                        read(fd,buf,BUFSIZE);
 		} else  cout<<"Enough\n";		
 	}
 }
-int main(int argc, char* argv[])
+
+void* transfer(void* args){
+	char text[BUFSIZE];
+	char id[BUFSIZE];
+	char* txt = "/tmp/messages";
+	mkfifo(txt,0666);
+	int fd = open(txt,O_RDWR);
+	while(read(fd,id,4)){
+		read(fd,txt,BUFSIZE);
+		char* child_pipe = (char*)malloc(BUFSIZE);
+		sprintf(child_pipe, "/tmp/client_%s", id);
+		int fd2 = open(child_pipe,O_RDWR);
+		write(fd2,txt,strlen(txt));
+	}
+}
+int main()
 {
-	      startup_server();
+	startup_server();
+	pthread_t mythread;
+        pthread_create(&mythread, NULL,&transfer,NULL);
         start_to_listen();
+        pthread_join(mythread, NULL);
 }
