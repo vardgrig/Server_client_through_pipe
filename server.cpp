@@ -29,7 +29,7 @@ void startup_server() {
   	char* shm = (char*)shmat(shmid, NULL, 0);
 	if (shm == (char *) -1) { perror("shmat"); exit(1); }
 	char up_message[] = "server is on\n";
- 	memcpy(shm, up_message, sizeof(up_message));	
+ 	memcpy(shm, up_message, strlen(up_message));	
 }
 
 void* client(void* args) {
